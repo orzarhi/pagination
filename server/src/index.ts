@@ -7,6 +7,16 @@ const app = new Hono().basePath('/api');
 app.use(cors());
 
 app.get('/users', (c) => {
+  const page = c.req.query('page') || 1;
+
+  if (isNaN(+page) || +page < 1) {
+    return c.json({ error: 'Invalid page number' }, 400);
+  }
+
+  const usersPerPage = 10;
+  const totalUsers = 100;
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
+
   const users = faker.helpers.multiple(
     () => {
       return {
@@ -20,11 +30,15 @@ app.get('/users', (c) => {
       };
     },
     {
-      count: 5,
+      count: usersPerPage,
     }
   );
 
-  return c.json(users);
+  return c.json({
+    users,
+    page,
+    totalPages
+  });
 });
 
 export default app;

@@ -5,13 +5,34 @@ import { Pagination } from './pagination';
 
 export const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchData().then((data) => setUsers(data));
-  }, []);
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await fetchData(currentPage.toString());
+        setUsers(data.users);
+        setTotalPages(data.totalPages);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [currentPage]);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+
+  if (loading) {
+    return <div className="container">Loading...</div>;
+  }
 
   return (
-    <div className='container'>
+    <div className="container">
       <h1>Users</h1>
       <ul>
         {users.map((user) => (
@@ -24,7 +45,7 @@ export const Users = () => {
           </li>
         ))}
       </ul>
-      <Pagination />
+      <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
     </div>
   );
 };
